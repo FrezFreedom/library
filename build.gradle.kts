@@ -24,8 +24,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    testImplementation("io.mockk:mockk:1.13.8")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
+
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
+
+    testImplementation("io.mockk:mockk:1.13.8")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
