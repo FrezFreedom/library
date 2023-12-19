@@ -50,4 +50,18 @@ class BookServiceTest {
 //        }
 //        verify { mockBookRepository.deleteById(id) }
 //    }
+
+    @Test
+    fun `should show book when show function invokes`(){
+        val id: UUID = UUID.randomUUID()
+        val mockBookRepository = mockk<BookRepository>()
+        val book = Book(id, "example_title", "example_isbn")
+        every { mockBookRepository.showById(id) } returns book
+        val bookService = BookService(mockBookRepository)
+        val expectedBookDTO = BookDTO("example_title", "example_isbn")
+
+        val result = bookService.showById(id)
+
+        Assertions.assertEquals(expectedBookDTO, result)
+    }
 }
