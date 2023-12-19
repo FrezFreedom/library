@@ -9,15 +9,15 @@ import org.library.entity.Book
 class BookServiceTest {
 
     @Test
-    fun `should return true when save book invokes`(){
-        val mockBookRepository = mockk<BookRepository>()
-        every { mockBookRepository.save(any()) } returns true
-        val bookService = BookService(mockBookRepository)
+    fun `should return book when save book invokes`(){
         val book = Book(title="The Little Prince",
-                        isbn="978-3-16-148410-0")
+            isbn="978-3-16-148410-0")
+        val mockBookRepository = mockk<BookRepository>()
+        every { mockBookRepository.save(any()) } returns book
+        val bookService = BookService(mockBookRepository)
 
         val result = bookService.save(book)
 
-        Assertions.assertTrue(result)
+        Assertions.assertEquals(book, result)
     }
 }
