@@ -7,7 +7,8 @@ import java.util.UUID
 
 @Service
 class BookService @Autowired constructor(
-    private val bookRepository: BookRepository
+    private val bookRepository: BookRepository,
+    private val userRepository: UserRepository
 ) {
 
     fun save(bookDTO: BookDTO) {
@@ -30,5 +31,23 @@ class BookService @Autowired constructor(
     fun findAll(): List<BookDTO> {
         val books = bookRepository.findAll()
         return books.map { BookDTO(it.title, it.isbn, it.id) }
+    }
+
+    fun borrowBook(bookId: UUID, userId: Long){
+        val user = userRepository.findById(userId)
+        val book = bookRepository.showById(bookId)
+
+        if(book != null && user != null) {
+            book.user = user
+            bookRepository.save(book)
+        } else {
+            throw NoSuchElementException()
+        }
+    }
+
+    fun returnBook(bookId: UUID){
+        val book = bookRepository.showById(bookId) ?: throw NoSuchElementException()
+        book.user = null
+        bookRepository.save(book)
     }
 }

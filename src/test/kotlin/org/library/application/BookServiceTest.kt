@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.library.entity.Book
+import org.library.entity.User
 import java.util.*
 
 
@@ -17,9 +18,10 @@ class BookServiceTest {
             isbn = "978-3-16-148410-0"
         )
         val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
         val bookSlot = slot<Book>()
         every { mockBookRepository.save(capture(bookSlot)) } returns mockk()
-        val bookService = BookService(mockBookRepository)
+        val bookService = BookService(mockBookRepository, mockUserRepository)
 
         bookService.save(bookDTO)
 
@@ -31,9 +33,10 @@ class BookServiceTest {
     fun `should return true when delete book invokes`() {
         val id: UUID = UUID.randomUUID()
         val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
         every { mockBookRepository.deleteById(id) } just runs
         every { mockBookRepository.showById(id) } returns mockk()
-        val bookService = BookService(mockBookRepository)
+        val bookService = BookService(mockBookRepository, mockUserRepository)
 
         bookService.deleteById(id)
 
@@ -44,9 +47,9 @@ class BookServiceTest {
     fun `should throw exception when delete book that not exist`() {
         val id: UUID = UUID.randomUUID()
         val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
         every { mockBookRepository.showById(id) } returns null
-
-        val bookService = BookService(mockBookRepository)
+        val bookService = BookService(mockBookRepository, mockUserRepository)
 
         assertThrows(NoSuchElementException::class.java) {
             bookService.deleteById(id)
@@ -58,9 +61,10 @@ class BookServiceTest {
     fun `should show book when show function invokes`() {
         val id: UUID = UUID.randomUUID()
         val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
         val book = Book(id, "example_title", "example_isbn")
         every { mockBookRepository.showById(id) } returns book
-        val bookService = BookService(mockBookRepository)
+        val bookService = BookService(mockBookRepository, mockUserRepository)
         val expectedBookDTO = BookDTO("example_title", "example_isbn")
 
         val result = bookService.showById(id)
@@ -72,10 +76,11 @@ class BookServiceTest {
     @Test
     fun `should return all books when findAll invokes`() {
         val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
         val books = listOf(Book(title = "x", isbn = "y"), Book(title = "xx", isbn = "yy"))
         val expectedBooks = books.map { BookDTO(it.title, it.isbn) }
         every { mockBookRepository.findAll() } returns books
-        val bookService = BookService(mockBookRepository)
+        val bookService = BookService(mockBookRepository, mockUserRepository)
 
         val result = bookService.findAll()
 
@@ -83,6 +88,77 @@ class BookServiceTest {
             assertEquals(expectedBook.title, result[index].title)
             assertEquals(expectedBook.isbn, result[index].isbn)
         }
+    }
 
+    @Test
+    fun `should borrow book to the user when borrow function invokes`(){
+        val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
+        val userId = 5L
+        val bookId = UUID.randomUUID()
+        val mockUser = User(userId, "frez")
+        val mockBook = Book(bookId, "title", "isbn")
+        every { mockBookRepository.showById(bookId) } returns mockBook
+        every { mockUserRepository.findById(userId) } returns mockUser
+        val bookSlot = slot<Book>()
+        every { mockBookRepository.save(capture(bookSlot)) } returns mockk()
+        val bookService = BookService(mockBookRepository, mockUserRepository)
+        val expectedBook = Book(bookId, "title", "isbn", mockUser)
+
+        bookService.borrowBook(bookId, userId)
+
+        assertEquals(expectedBook, bookSlot.captured)
+        verify { mockBookRepository.save(mockBook) }
+        verify { mockBookRepository.showById(bookId) }
+        verify { mockUserRepository.findById(userId) }
+    }
+
+    @Test
+    fun `should throw NoSuchElementException when borrow function invokes with invalid book id or invalid user id`(){
+        val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
+        val userId = 5L
+        val bookId = UUID.randomUUID()
+        every { mockBookRepository.showById(bookId) } returns null
+        every { mockUserRepository.findById(userId) } returns null
+        val bookService = BookService(mockBookRepository, mockUserRepository)
+
+        assertThrows(NoSuchElementException::class.java) {
+            bookService.borrowBook(bookId, userId)
+        }
+        verify { mockBookRepository.showById(bookId) }
+        verify { mockUserRepository.findById(userId) }
+    }
+
+    @Test
+    fun `should return book to library when return function invokes`(){
+        val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
+        val bookId = UUID.randomUUID()
+        val book = Book(bookId, "title", "isbn", mockk())
+        val savedBook = Book(bookId, "title", "isbn", null)
+        every { mockBookRepository.showById(bookId) } returns book
+        every { mockBookRepository.save(savedBook) } returns mockk()
+        val bookService = BookService(mockBookRepository, mockUserRepository)
+
+        bookService.returnBook(bookId)
+
+        verify { mockBookRepository.showById(bookId) }
+        verify { mockBookRepository.save(savedBook) }
+    }
+
+    @Test
+    fun `should throw exception when return function invokes for invalid book id`(){
+        val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
+        val bookId = UUID.randomUUID()
+        every { mockBookRepository.showById(bookId) } throws NoSuchElementException()
+        val bookService = BookService(mockBookRepository, mockUserRepository)
+
+        assertThrows(NoSuchElementException::class.java) {
+            bookService.returnBook(bookId)
+        }
+
+        verify { mockBookRepository.showById(bookId) }
     }
 }

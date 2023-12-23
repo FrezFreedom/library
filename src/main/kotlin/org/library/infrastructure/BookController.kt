@@ -38,7 +38,7 @@ class BookController(private val bookService: BookService) {
     fun show(@PathVariable id: UUID): ResponseEntity<Any> {
         val bookDTO = bookService.showById(id)
 
-        return if(bookDTO != null) {
+        return if (bookDTO != null) {
             return ResponseEntity.ok(bookDTO)
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND).body("Book not exists!")
@@ -50,5 +50,33 @@ class BookController(private val bookService: BookService) {
         val books = bookService.findAll()
 
         return books
+    }
+
+    @GetMapping("/borrow")
+    fun borrowBook(@RequestBody requestBody: BorrowRequestBody): ResponseEntity<String> {
+        val bookId = requestBody.bookId
+        val userId = requestBody.userId
+
+        try {
+            bookService.borrowBook(bookId, userId)
+            return ResponseEntity("Book with ID $bookId borrowed successfully", HttpStatus.OK)
+        } catch (e: NoSuchElementException) {
+            return ResponseEntity("Book with ID $bookId not found", HttpStatus.NOT_FOUND)
+        } catch (e: Exception) {
+            return ResponseEntity("An error occurred while borrow the book", HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    fun returnBook(requestBody: ReturnRequestBody): ResponseEntity<String> {
+        val bookId = requestBody.bookId
+
+        try {
+            bookService.returnBook(bookId)
+            return ResponseEntity("Book with ID $bookId returned successfully", HttpStatus.OK)
+        } catch (e: NoSuchElementException) {
+            return ResponseEntity("Book with ID $bookId not found", HttpStatus.NOT_FOUND)
+        } catch (e: Exception) {
+            return ResponseEntity("An error occurred while return the book", HttpStatus.INTERNAL_SERVER_ERROR)
+        }
     }
 }
