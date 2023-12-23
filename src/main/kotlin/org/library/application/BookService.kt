@@ -27,4 +27,9 @@ class BookService @Autowired constructor(
         val book = bookRepository.showById(id)
         return book?.let { BookDTO(it.title, it.isbn) }
     }
+
+    fun findAll(): List<BookDTO> {
+        val books = bookRepository.findAll()
+        return books.map { it.let { BookDTO(it.title, it.isbn) } }
+    }
 }

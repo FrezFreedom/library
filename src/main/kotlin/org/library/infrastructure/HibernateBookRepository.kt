@@ -12,5 +12,4 @@ interface HibernateBookRepository : BookRepository, CrudRepository<Book, UUID> {
 
     @Query("SELECT b FROM Book b WHERE b.id = :id")
     override fun showById(id: UUID): Book?
-
 }

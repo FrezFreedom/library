@@ -70,4 +70,17 @@ class BookServiceTest {
 
         Assertions.assertEquals(expectedBookDTO, result)
     }
+
+    @Test
+    fun `should return all books when findAll invokes`(){
+        val mockBookRepository = mockk<BookRepository>()
+        val books = listOf(Book(title = "x", isbn = "y"), Book(title = "xx", isbn = "yy"))
+        val expectedBooks = books.map { it.let { BookDTO(it.title, it.isbn) } }
+        every { mockBookRepository.findAll() } returns books
+        val bookService = BookService(mockBookRepository)
+
+        val result = bookService.findAll()
+
+        Assertions.assertEquals(expectedBooks, result)
+    }
 }

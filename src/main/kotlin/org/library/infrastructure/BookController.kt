@@ -44,4 +44,11 @@ class BookController(private val bookService: BookService) {
             ResponseEntity.status(HttpStatus.NOT_FOUND).body("Book not exists!")
         }
     }
+
+    @GetMapping
+    fun showAll(): List<BookDTO> {
+        val books = bookService.findAll()
+
+        return books
+    }
 }
