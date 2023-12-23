@@ -23,9 +23,15 @@ class BookController(private val bookService: BookService) {
     }
 
     @DeleteMapping
-    fun delete(@RequestBody requestBody: DeleteRequestBody): HttpStatus {
-        bookService.deleteById(requestBody.id)
-        return HttpStatus.OK
+    fun delete(@RequestBody requestBody: DeleteRequestBody): ResponseEntity<String> {
+        try {
+            bookService.deleteById(requestBody.id)
+            return ResponseEntity("Book with ID ${requestBody.id} deleted successfully", HttpStatus.OK)
+        } catch (exception: NoSuchElementException) {
+            return ResponseEntity("Book with ID ${requestBody.id} not found", HttpStatus.NOT_FOUND)
+        } catch (exception: Exception) {
+            return ResponseEntity("An error occurred while deleting the book", HttpStatus.INTERNAL_SERVER_ERROR)
+        }
     }
 
     @GetMapping("/{id}")

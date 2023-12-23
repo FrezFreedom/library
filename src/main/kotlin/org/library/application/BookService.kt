@@ -17,6 +17,9 @@ class BookService @Autowired constructor(
     }
 
     fun deleteById(id: UUID){
+        if(bookRepository.showById(id) == null){
+            throw NoSuchElementException()
+        }
         bookRepository.deleteById(id)
     }
 

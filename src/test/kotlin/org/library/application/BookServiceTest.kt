@@ -4,9 +4,11 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.library.entity.Book
-import java.util.UUID
+import java.util.*
+
 
 class BookServiceTest {
 
@@ -30,6 +32,8 @@ class BookServiceTest {
         val id: UUID = UUID.randomUUID()
         val mockBookRepository = mockk<BookRepository>()
         every { mockBookRepository.deleteById(id) } returns Unit
+        every { mockBookRepository.showById(id) } returns Book(title = "x", isbn = "z")
+
         val bookService = BookService(mockBookRepository)
 
         val result = bookService.deleteById(id)
@@ -38,18 +42,20 @@ class BookServiceTest {
         Assertions.assertEquals(Unit, result)
     }
 
-//    @Test
-//    fun `should throw exception when delete book that not exist`(){
-//        val id: UUID = UUID.randomUUID()
-//        val mockBookRepository = mockk<BookRepository>()
-//        every { mockBookRepository.deleteById(id) } throws Exception("Not exists")
-//        val bookService = BookService(mockBookRepository)
-//
-//        assertThrows<Exception> {
-//            bookService.deleteById(id)
-//        }
-//        verify { mockBookRepository.deleteById(id) }
-//    }
+    @Test
+    fun `should throw exception when delete book that not exist`(){
+        val id: UUID = UUID.randomUUID()
+        val mockBookRepository = mockk<BookRepository>()
+        every { mockBookRepository.showById(id) } returns null
+
+        val bookService = BookService(mockBookRepository)
+
+        assertThrows(NoSuchElementException::class.java) {
+            bookService.deleteById(id)
+        }
+
+        verify { mockBookRepository.showById(id) }
+    }
 
     @Test
     fun `should show book when show function invokes`(){
