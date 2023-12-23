@@ -10,14 +10,13 @@ class BookService @Autowired constructor(
     private val bookRepository: BookRepository
 ) {
 
-    fun save(bookDTO: BookDTO): BookDTO {
-        val result = bookRepository.save(bookDTO.let { Book(title = it.title, isbn = it.isbn) })
-        println(result.id)
-        return result.let { BookDTO(it.title,it.isbn) }
+    fun save(bookDTO: BookDTO) {
+        val temp = bookDTO.let { Book(title = it.title, isbn = it.isbn) }
+        bookRepository.save(temp)
     }
 
-    fun deleteById(id: UUID){
-        if(bookRepository.showById(id) == null){
+    fun deleteById(id: UUID) {
+        if (bookRepository.showById(id) == null) {
             throw NoSuchElementException()
         }
         bookRepository.deleteById(id)
@@ -25,11 +24,11 @@ class BookService @Autowired constructor(
 
     fun showById(id: UUID): BookDTO? {
         val book = bookRepository.showById(id)
-        return book?.let { BookDTO(it.title, it.isbn) }
+        return book?.let { BookDTO(it.title, it.isbn, it.id) }
     }
 
     fun findAll(): List<BookDTO> {
         val books = bookRepository.findAll()
-        return books.map { it.let { BookDTO(it.title, it.isbn) } }
+        return books.map { BookDTO(it.title, it.isbn, it.id) }
     }
 }

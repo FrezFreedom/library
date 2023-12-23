@@ -18,8 +18,8 @@ import java.util.UUID
 class BookController(private val bookService: BookService) {
 
     @PostMapping
-    fun create(@RequestBody bookDTO: BookDTO): BookDTO {
-        return bookService.save(bookDTO)
+    fun create(@RequestBody bookDTO: BookDTO) {
+        bookService.save(bookDTO)
     }
 
     @DeleteMapping
