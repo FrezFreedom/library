@@ -33,19 +33,21 @@ class BookService @Autowired constructor(
         return books.map { BookDTO(it.title, it.isbn, it.id) }
     }
 
-    fun borrowBook(bookId: UUID, userId: Long){
+    fun borrowBook(bookId: UUID, userId: Long) {
         val user = userRepository.findById(userId)
         val book = bookRepository.showById(bookId)
 
-        if(book != null && user != null) {
+        if (book != null && user != null && book.user == null) {
             book.user = user
             bookRepository.save(book)
+        } else if (book?.user != null) {
+            throw BookNotAvailableException()
         } else {
             throw NoSuchElementException()
         }
     }
 
-    fun returnBook(bookId: UUID){
+    fun returnBook(bookId: UUID) {
         val book = bookRepository.showById(bookId) ?: throw NoSuchElementException()
         book.user = null
         bookRepository.save(book)

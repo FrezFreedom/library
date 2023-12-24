@@ -11,8 +11,9 @@ import org.library.application.BookService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import java.util.UUID
+import kotlin.random.Random
 
-class BookControllerTest {
+class BookControllerUnitTest {
 
     @Nested
     @DisplayName("POST /api/books/borrow")
@@ -21,8 +22,8 @@ class BookControllerTest {
         @Test
         fun `should return status OK when the book borrowed successfully`() {
             val bookService = mockk<BookService>()
-            val userId = 5L
-            val bookId = UUID.fromString("24269be5-af13-4545-a37e-ca0cf2d7657b")
+            val userId = Random.nextLong()
+            val bookId = UUID.randomUUID()
             val requestBody = BorrowRequestBody(bookId, userId)
             every { bookService.borrowBook(bookId, userId) } just runs
             val bookController = BookController(bookService)
@@ -36,12 +37,12 @@ class BookControllerTest {
         @Test
         fun `should return status NOT_FOUND when the book id is invalid`() {
             val bookService = mockk<BookService>()
-            val userId = 5L
-            val bookId = UUID.fromString("24269be5-af13-4545-a37e-ca0cf2d7657b")
+            val bookController = BookController(bookService)
+            val userId = Random.nextLong()
+            val bookId = UUID.randomUUID()
             val requestBody = BorrowRequestBody(bookId, userId)
             every { bookService.borrowBook(bookId, userId) } throws NoSuchElementException()
-            val bookController = BookController(bookService)
-            val expectedResult = ResponseEntity("Book with ID $bookId not found", HttpStatus.NOT_FOUND)
+            val expectedResult = ResponseEntity("Book with ID $bookId or User with ID $userId not found", HttpStatus.NOT_FOUND)
 
             val result = bookController.borrowBook(requestBody)
 
@@ -51,11 +52,11 @@ class BookControllerTest {
         @Test
         fun `should return INTERNAL_SERVER_ERROR status when occurs problem`() {
             val bookService = mockk<BookService>()
-            val userId = 5L
-            val bookId = UUID.fromString("24269be5-af13-4545-a37e-ca0cf2d7657b")
+            val bookController = BookController(bookService)
+            val userId = Random.nextLong()
+            val bookId = UUID.randomUUID()
             val requestBody = BorrowRequestBody(bookId, userId)
             every { bookService.borrowBook(bookId, userId) } throws Exception()
-            val bookController = BookController(bookService)
             val expectedResult = ResponseEntity("An error occurred while borrow the book", HttpStatus.INTERNAL_SERVER_ERROR)
 
             val result = bookController.borrowBook(requestBody)

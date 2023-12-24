@@ -114,7 +114,43 @@ class BookServiceTest {
     }
 
     @Test
-    fun `should throw NoSuchElementException when borrow function invokes with invalid book id or invalid user id`(){
+    fun `should throw NoSuchElementException when borrow function invokes with invalid book id and invalid user id`(){
+        val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
+        val userId = 5L
+        val bookId = UUID.randomUUID()
+        val mockUser = User(userId, "frez")
+        every { mockBookRepository.showById(bookId) } returns null
+        every { mockUserRepository.findById(userId) } returns mockUser
+        val bookService = BookService(mockBookRepository, mockUserRepository)
+
+        assertThrows(NoSuchElementException::class.java) {
+            bookService.borrowBook(bookId, userId)
+        }
+        verify { mockBookRepository.showById(bookId) }
+        verify { mockUserRepository.findById(userId) }
+    }
+
+    @Test
+    fun `should throw NoSuchElementException when borrow function invokes with invalid user id and invalid user id`(){
+        val mockBookRepository = mockk<BookRepository>()
+        val mockUserRepository = mockk<UserRepository>()
+        val userId = 5L
+        val bookId = UUID.randomUUID()
+        val mockBook = Book(bookId, "title", "isbn")
+        every { mockBookRepository.showById(bookId) } returns mockBook
+        every { mockUserRepository.findById(userId) } returns null
+        val bookService = BookService(mockBookRepository, mockUserRepository)
+
+        assertThrows(NoSuchElementException::class.java) {
+            bookService.borrowBook(bookId, userId)
+        }
+        verify { mockBookRepository.showById(bookId) }
+        verify { mockUserRepository.findById(userId) }
+    }
+
+    @Test
+    fun `should throw NoSuchElementException when borrow function invokes with invalid book id`(){
         val mockBookRepository = mockk<BookRepository>()
         val mockUserRepository = mockk<UserRepository>()
         val userId = 5L
@@ -129,7 +165,6 @@ class BookServiceTest {
         verify { mockBookRepository.showById(bookId) }
         verify { mockUserRepository.findById(userId) }
     }
-
     @Test
     fun `should return book to library when return function invokes`(){
         val mockBookRepository = mockk<BookRepository>()
@@ -158,7 +193,6 @@ class BookServiceTest {
         assertThrows(NoSuchElementException::class.java) {
             bookService.returnBook(bookId)
         }
-
         verify { mockBookRepository.showById(bookId) }
     }
 }
