@@ -2,6 +2,7 @@ package org.library.infrastructure
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.library.application.BookDTO
@@ -31,25 +32,6 @@ class BookControllerRestTest @Autowired constructor(
 
     private val objectMapper = ObjectMapper()
 
-    // uncomment it when you want debug from H2 console
-//    companion object {
-//
-//        @JvmStatic
-//        @BeforeAll
-//        @kotlin.Throws(SQLException::class)
-//        fun initTest() {
-//            Server.createWebServer("-web", "-webAllowOthers", "-webPort", "8082")
-//                .start()
-//        }
-//    }
-
-    private fun differentRandomUUID(listOfUUIDs: List<UUID>): UUID {
-        while (true) {
-            val randomUUID = UUID.randomUUID()
-            if (randomUUID !in listOfUUIDs)
-                return randomUUID
-        }
-    }
 
     @Test
     @DirtiesContext
@@ -67,8 +49,8 @@ class BookControllerRestTest @Autowired constructor(
                 status { isOk() }
             }
 
-        val books = bookRepository.findAll()
-        Assertions.assertEquals(books.size, 1)
+        val book = bookRepository.findAll().first()
+        assertThat(book.let { BookDTO(it.title, it.isbn) }).isEqualTo(bookDTO)
     }
 
     @Test
@@ -123,7 +105,7 @@ class BookControllerRestTest @Autowired constructor(
         val book = Book(randomUUID, sampleTitle, sampleIsbn)
         bookRepository.save(book)
 
-        val invalidRandomUUID = differentRandomUUID(listOf(randomUUID))
+        val invalidRandomUUID = UUID.randomUUID()
 
         mockMvc.get("/api/books/$invalidRandomUUID")
             .andDo { print() }
@@ -156,7 +138,7 @@ class BookControllerRestTest @Autowired constructor(
         val resultBookDTOs: List<BookDTO> =
             objectMapper.readValue(responseBookDTOs, object : TypeReference<List<BookDTO>>() {})
 
-        org.assertj.core.api.Assertions.assertThat(resultBookDTOs).containsExactlyInAnyOrderElementsOf(expectedBookDTOS)
+        assertThat(resultBookDTOs).containsExactlyInAnyOrderElementsOf(expectedBookDTOS)
     }
 
     @Test
@@ -167,8 +149,8 @@ class BookControllerRestTest @Autowired constructor(
         val randomUUID = UUID.randomUUID()
         val book = Book(randomUUID, "title", "isbn", user)
         bookRepository.save(book)
-        val returnRequestBody = ReturnRequestBody(randomUUID)
-        val requestContent = objectMapper.writeValueAsString(returnRequestBody)
+        val bookReturnRequestBody = BookReturnRequestBody(randomUUID)
+        val requestContent = objectMapper.writeValueAsString(bookReturnRequestBody)
 
 
         val resultPostRequest = mockMvc.post("/api/books/return") {
@@ -192,9 +174,9 @@ class BookControllerRestTest @Autowired constructor(
         val randomUUID = UUID.randomUUID()
         val book = Book(randomUUID, "title", "isbn")
         bookRepository.save(book)
-        val invalidUUID = differentRandomUUID(listOf(randomUUID))
-        val returnRequestBody = ReturnRequestBody(invalidUUID)
-        val requestContent = objectMapper.writeValueAsString(returnRequestBody)
+        val invalidUUID = UUID.randomUUID()
+        val bookReturnRequestBody = BookReturnRequestBody(invalidUUID)
+        val requestContent = objectMapper.writeValueAsString(bookReturnRequestBody)
 
 
         val resultPostRequest = mockMvc.post("/api/books/return") {
@@ -268,7 +250,7 @@ class BookControllerRestTest @Autowired constructor(
         val randomUUID = UUID.randomUUID()
         val book = Book(randomUUID, "tile", "isbn")
         bookRepository.save(book)
-        val invalidBookId = differentRandomUUID(listOf(randomUUID))
+        val invalidBookId = UUID.randomUUID()
         val borrowRequestBody = BorrowRequestBody(invalidBookId, 1L)
         val requestContent = objectMapper.writeValueAsString(borrowRequestBody)
 

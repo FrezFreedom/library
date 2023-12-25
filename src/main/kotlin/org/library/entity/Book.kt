@@ -20,4 +20,6 @@ data class Book(
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
     var user: User? = null
-)
+) {
+    val isBorrowed: Boolean get() = user != null
+}

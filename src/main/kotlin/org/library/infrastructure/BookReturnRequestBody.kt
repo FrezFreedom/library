@@ -2,6 +2,6 @@ package org.library.infrastructure
 
 import java.util.*
 
-data class ReturnRequestBody(
+data class BookReturnRequestBody(
     val bookId: UUID,
 )

@@ -8,8 +8,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestInstance
 import org.library.application.BookService
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import org.library.application.ElementNotFoundException
 import java.util.UUID
 import kotlin.random.Random
 
@@ -27,11 +26,10 @@ class BookControllerUnitTest {
             val requestBody = BorrowRequestBody(bookId, userId)
             every { bookService.borrowBook(bookId, userId) } just runs
             val bookController = BookController(bookService)
-            val expectedResult = ResponseEntity("Book with ID $bookId borrowed successfully", HttpStatus.OK)
 
-            val result = bookController.borrowBook(requestBody)
+            bookController.borrowBook(requestBody)
 
-            assertEquals(expectedResult, result)
+            verify { bookService.borrowBook(bookId, userId) }
         }
 
         @Test
@@ -41,27 +39,25 @@ class BookControllerUnitTest {
             val userId = Random.nextLong()
             val bookId = UUID.randomUUID()
             val requestBody = BorrowRequestBody(bookId, userId)
-            every { bookService.borrowBook(bookId, userId) } throws NoSuchElementException()
-            val expectedResult = ResponseEntity("Book with ID $bookId or User with ID $userId not found", HttpStatus.NOT_FOUND)
+            every { bookService.borrowBook(bookId, userId) } throws ElementNotFoundException()
 
-            val result = bookController.borrowBook(requestBody)
-
-            assertEquals(expectedResult, result)
+            assertThrows(ElementNotFoundException::class.java) {
+                bookController.borrowBook(requestBody)
+            }
         }
 
         @Test
         fun `should return INTERNAL_SERVER_ERROR status when occurs problem`() {
             val bookService = mockk<BookService>()
             val bookController = BookController(bookService)
-            val userId = Random.nextLong()
+            val userId = Random.nextLong(1, Long.MAX_VALUE)
             val bookId = UUID.randomUUID()
             val requestBody = BorrowRequestBody(bookId, userId)
             every { bookService.borrowBook(bookId, userId) } throws Exception()
-            val expectedResult = ResponseEntity("An error occurred while borrow the book", HttpStatus.INTERNAL_SERVER_ERROR)
 
-            val result = bookController.borrowBook(requestBody)
-
-            assertEquals(expectedResult, result)
+            assertThrows(Exception::class.java) {
+                bookController.borrowBook(requestBody)
+            }
         }
     }
 
@@ -75,13 +71,11 @@ class BookControllerUnitTest {
             val bookController = BookController(bookService)
             val bookId = UUID.randomUUID()
             every { bookService.returnBook(bookId) } just runs
-            val requestBody = ReturnRequestBody(bookId)
-            val expectedResult = ResponseEntity("Book with ID $bookId returned successfully", HttpStatus.OK)
+            val requestBody = BookReturnRequestBody(bookId)
 
-            val result = bookController.returnBook(requestBody)
+            bookController.returnBook(requestBody)
 
             verify { bookService.returnBook(bookId) }
-            assertEquals(expectedResult, result)
         }
 
         @Test
@@ -89,14 +83,13 @@ class BookControllerUnitTest {
             val bookService = mockk<BookService>()
             val bookController = BookController(bookService)
             val bookId = UUID.randomUUID()
-            every { bookService.returnBook(bookId) } throws NoSuchElementException()
-            val requestBody = ReturnRequestBody(bookId)
-            val expectedResult = ResponseEntity("Book with ID $bookId not found", HttpStatus.NOT_FOUND)
+            every { bookService.returnBook(bookId) } throws ElementNotFoundException()
+            val requestBody = BookReturnRequestBody(bookId)
 
-            val result = bookController.returnBook(requestBody)
-
+            assertThrows(ElementNotFoundException::class.java) {
+                bookController.returnBook(requestBody)
+            }
             verify { bookService.returnBook(bookId) }
-            assertEquals(expectedResult, result)
         }
 
         @Test
@@ -105,13 +98,12 @@ class BookControllerUnitTest {
             val bookController = BookController(bookService)
             val bookId = UUID.randomUUID()
             every { bookService.returnBook(bookId) } throws Exception()
-            val requestBody = ReturnRequestBody(bookId)
-            val expectedResult = ResponseEntity("An error occurred while return the book", HttpStatus.INTERNAL_SERVER_ERROR)
+            val requestBody = BookReturnRequestBody(bookId)
 
-            val result = bookController.returnBook(requestBody)
-
+            assertThrows(Exception::class.java) {
+                bookController.returnBook(requestBody)
+            }
             verify { bookService.returnBook(bookId) }
-            assertEquals(expectedResult, result)
         }
     }
 }

@@ -5,15 +5,17 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.library.application.BookDTO
 import org.library.application.BookService
+import org.library.application.ElementNotFoundException
 import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import java.util.*
-import kotlin.NoSuchElementException
 
 class BookControllerRestWithMockTest {
     private val objectMapper = ObjectMapper()
@@ -35,16 +37,18 @@ class BookControllerRestWithMockTest {
     }
 
     @Test
-    fun `return INTERNAL_SERVER_ERROR status code when creation of book fails`() {
+    fun `throw Exception when creation of book fails`() {
         val bookDTO = BookDTO("title", "isbn")
         every { bookService.save(bookDTO) } throws Exception()
         val requestContent = objectMapper.writeValueAsString(bookDTO)
 
-        mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent)
-        ).andExpect(status().isInternalServerError)
+        Assertions.assertThrows(Exception::class.java) {
+            mockMvc.perform(
+                MockMvcRequestBuilders.post("/api/books")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestContent)
+            ).andExpect(status().isInternalServerError)
+        }
     }
 
     @Test
@@ -61,28 +65,30 @@ class BookControllerRestWithMockTest {
     }
 
     @Test
-    fun `return NOT_FOUND status code when book id is invalid`() {
+    fun `throw Exception when book id is invalid`() {
         val requestBody = DeleteRequestBody(UUID.randomUUID())
-        every { bookService.deleteById(requestBody.id) } throws NoSuchElementException()
+        every { bookService.deleteById(requestBody.id) } throws ElementNotFoundException()
         val requestContent = objectMapper.writeValueAsString(requestBody)
 
-        mockMvc.perform(
-            MockMvcRequestBuilders.delete("/api/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent)
-        ).andExpect(status().isNotFound)
+        Assertions.assertThrows(Exception::class.java) {
+            mockMvc.delete("/api/books") {
+                contentType = MediaType.APPLICATION_JSON
+                content = requestContent
+            }
+        }
     }
 
     @Test
-    fun `return INTERNAL_SERVER_ERROR status code when book saving failed`() {
+    fun `throw Exception when book saving failed`() {
         val requestBody = DeleteRequestBody(UUID.randomUUID())
         every { bookService.deleteById(requestBody.id) } throws Exception()
         val requestContent = objectMapper.writeValueAsString(requestBody)
 
-        mockMvc.perform(
-            MockMvcRequestBuilders.delete("/api/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestContent)
-        ).andExpect(status().isInternalServerError)
+        Assertions.assertThrows(Exception::class.java) {
+            mockMvc.delete("/api/books") {
+                contentType = MediaType.APPLICATION_JSON
+                content = requestContent
+            }
+        }
     }
 }

@@ -17,38 +17,35 @@ class BookService @Autowired constructor(
     }
 
     fun deleteById(id: UUID) {
-        if (bookRepository.showById(id) == null) {
-            throw NoSuchElementException()
-        }
+        bookRepository.showById(id) ?: throw ElementNotFoundException("Book with ID $id not found")
+
         bookRepository.deleteById(id)
     }
 
-    fun showById(id: UUID): BookDTO? {
-        val book = bookRepository.showById(id)
-        return book?.let { BookDTO(it.title, it.isbn, it.id) }
+    fun showById(id: UUID): BookDTO {
+        val book = bookRepository.showById(id) ?: throw ElementNotFoundException("Book with ID $id not found")
+        return BookDTO.createFromBook(book)
     }
 
     fun findAll(): List<BookDTO> {
         val books = bookRepository.findAll()
-        return books.map { BookDTO(it.title, it.isbn, it.id) }
+        return books.map { BookDTO.createFromBook(it) }
     }
 
     fun borrowBook(bookId: UUID, userId: Long) {
-        val user = userRepository.findById(userId)
-        val book = bookRepository.showById(bookId)
+        val user = userRepository.findById(userId) ?: throw ElementNotFoundException("User with ID $userId not found")
+        val book = bookRepository.showById(bookId) ?: throw ElementNotFoundException("Book with ID $bookId not found")
 
-        if (book != null && user != null && book.user == null) {
+        if (!book.isBorrowed) {
             book.user = user
             bookRepository.save(book)
-        } else if (book?.user != null) {
-            throw BookNotAvailableException()
         } else {
-            throw NoSuchElementException()
+            throw BookNotAvailableException("Book with ID $bookId is not available now!")
         }
     }
 
     fun returnBook(bookId: UUID) {
-        val book = bookRepository.showById(bookId) ?: throw NoSuchElementException()
+        val book = bookRepository.showById(bookId) ?: throw ElementNotFoundException("Book with ID $bookId not found")
         book.user = null
         bookRepository.save(book)
     }

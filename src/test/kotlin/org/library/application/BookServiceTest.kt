@@ -51,7 +51,7 @@ class BookServiceTest {
         every { mockBookRepository.showById(id) } returns null
         val bookService = BookService(mockBookRepository, mockUserRepository)
 
-        assertThrows(NoSuchElementException::class.java) {
+        assertThrows(ElementNotFoundException::class.java) {
             bookService.deleteById(id)
         }
         verify { mockBookRepository.showById(id) }
@@ -69,8 +69,8 @@ class BookServiceTest {
 
         val result = bookService.showById(id)
 
-        assertEquals(expectedBookDTO.title, result?.title)
-        assertEquals(expectedBookDTO.isbn, result?.isbn)
+        assertEquals(expectedBookDTO.title, result.title)
+        assertEquals(expectedBookDTO.isbn, result.isbn)
     }
 
     @Test
@@ -78,7 +78,7 @@ class BookServiceTest {
         val mockBookRepository = mockk<BookRepository>()
         val mockUserRepository = mockk<UserRepository>()
         val books = listOf(Book(title = "x", isbn = "y"), Book(title = "xx", isbn = "yy"))
-        val expectedBooks = books.map { BookDTO(it.title, it.isbn) }
+        val expectedBooks = books.map { BookDTO.createFromBook(it) }
         every { mockBookRepository.findAll() } returns books
         val bookService = BookService(mockBookRepository, mockUserRepository)
 
@@ -119,16 +119,14 @@ class BookServiceTest {
         val mockUserRepository = mockk<UserRepository>()
         val userId = 5L
         val bookId = UUID.randomUUID()
-        val mockUser = User(userId, "frez")
         every { mockBookRepository.showById(bookId) } returns null
-        every { mockUserRepository.findById(userId) } returns mockUser
+        every { mockUserRepository.findById(userId) } returns mockk()
         val bookService = BookService(mockBookRepository, mockUserRepository)
 
-        assertThrows(NoSuchElementException::class.java) {
+        assertThrows(ElementNotFoundException::class.java) {
             bookService.borrowBook(bookId, userId)
         }
         verify { mockBookRepository.showById(bookId) }
-        verify { mockUserRepository.findById(userId) }
     }
 
     @Test
@@ -137,15 +135,12 @@ class BookServiceTest {
         val mockUserRepository = mockk<UserRepository>()
         val userId = 5L
         val bookId = UUID.randomUUID()
-        val mockBook = Book(bookId, "title", "isbn")
-        every { mockBookRepository.showById(bookId) } returns mockBook
         every { mockUserRepository.findById(userId) } returns null
         val bookService = BookService(mockBookRepository, mockUserRepository)
 
-        assertThrows(NoSuchElementException::class.java) {
+        assertThrows(ElementNotFoundException::class.java) {
             bookService.borrowBook(bookId, userId)
         }
-        verify { mockBookRepository.showById(bookId) }
         verify { mockUserRepository.findById(userId) }
     }
 
@@ -159,10 +154,9 @@ class BookServiceTest {
         every { mockUserRepository.findById(userId) } returns null
         val bookService = BookService(mockBookRepository, mockUserRepository)
 
-        assertThrows(NoSuchElementException::class.java) {
+        assertThrows(ElementNotFoundException::class.java) {
             bookService.borrowBook(bookId, userId)
         }
-        verify { mockBookRepository.showById(bookId) }
         verify { mockUserRepository.findById(userId) }
     }
     @Test
