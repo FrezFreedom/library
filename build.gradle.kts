@@ -25,6 +25,11 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
+//    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.security:spring-security-web:6.2.1")
+    implementation("org.springframework.security:spring-security-core:6.2.1")
+    implementation("org.springframework.security:spring-security-config:6.2.1")
+
 
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 

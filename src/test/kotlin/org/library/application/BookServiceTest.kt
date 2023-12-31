@@ -96,7 +96,7 @@ class BookServiceTest {
         val mockUserRepository = mockk<UserRepository>()
         val userId = 5L
         val bookId = UUID.randomUUID()
-        val mockUser = User(userId, "frez")
+        val mockUser = User(userId, "frez", "faraz")
         val mockBook = Book(bookId, "title", "isbn")
         every { mockBookRepository.showById(bookId) } returns mockBook
         every { mockUserRepository.findById(userId) } returns mockUser
