@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import java.util.UUID
 
 @Entity
+@Table(name = "books")
 data class Book(
     @Id
     val id: UUID = UUID.randomUUID(),

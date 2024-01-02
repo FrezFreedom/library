@@ -1,17 +1,15 @@
 package org.library.infrastructure
 
 import org.library.application.BookDTO
-import org.library.application.BookNotAvailableException
 import org.library.application.BookService
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
 @RestController
 @RequestMapping("/api/books")
 @RestControllerAdvice
-class BookController(private val bookService: BookService) {
+class BookController @Autowired constructor(private val bookService: BookService) {
 
     @PostMapping
     fun create(@RequestBody bookDTO: BookDTO) =

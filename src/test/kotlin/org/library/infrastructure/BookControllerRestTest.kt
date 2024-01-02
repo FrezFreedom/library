@@ -2,18 +2,19 @@ package org.library.infrastructure
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.mockk.MockKGateway.VerificationResult.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.library.application.BookDTO
-import org.library.application.BookRepository
-import org.library.application.UserRepository
+import org.library.application.*
 import org.library.entity.Book
 import org.library.entity.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+//import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.delete
@@ -22,15 +23,24 @@ import org.springframework.test.web.servlet.post
 import java.util.UUID
 import kotlin.random.Random
 
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class BookControllerRestTest @Autowired constructor(
     private val mockMvc: MockMvc,
     private val bookRepository: BookRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) {
 
     private val objectMapper = ObjectMapper()
+
+    @BeforeEach
+    fun init() {
+//        val crudUserDto = CrudUserDto("frez", "faraz", "frez@gmail.com", "12345678")
+//        userService.save(crudUserDto)
+//        val user = User("frez", "faraz", "frez@gmail.com", "12345678", 1L)
+//        userRepository.save(user)
+    }
 
 
     @Test
@@ -42,6 +52,7 @@ class BookControllerRestTest @Autowired constructor(
         val resultPostRequest = mockMvc.post("/api/books") {
             contentType = MediaType.APPLICATION_JSON
             content = requestContent
+//            with(httpBasic("frez", "12345678"))
         }
 
         resultPostRequest
@@ -144,7 +155,7 @@ class BookControllerRestTest @Autowired constructor(
     @Test
     @DirtiesContext
     fun `return OK status when return book to library successfully`() {
-        val user = User(name = "changiz")
+        val user = User(1L,"frez", "faraz", "frez@gmail.com", "####")
         userRepository.save(user)
         val randomUUID = UUID.randomUUID()
         val book = Book(randomUUID, "title", "isbn", user)
@@ -194,7 +205,7 @@ class BookControllerRestTest @Autowired constructor(
     @Test
     @DirtiesContext
     fun `return OK status when borrow the book to user successfully`() {
-        val user = User(name = "changiz")
+        val user = User(1L,"frez", "faraz", "frez@gmail.com", "####")
         userRepository.save(user)
         val randomUUID = UUID.randomUUID()
         val book = Book(randomUUID, "tile", "isbn")
@@ -221,7 +232,7 @@ class BookControllerRestTest @Autowired constructor(
     @Test
     @DirtiesContext
     fun `return NO_FOUND status when want to borrow to invalid user`() {
-        val user = User(name = "changiz")
+        val user = User(1L,"frez", "faraz", "frez@gmail.com", "####")
         userRepository.save(user)
         val randomUUID = UUID.randomUUID()
         val book = Book(randomUUID, "tile", "isbn")
@@ -245,7 +256,7 @@ class BookControllerRestTest @Autowired constructor(
     @Test
     @DirtiesContext
     fun `return NO_FOUND status when want to borrow a invalid book`() {
-        val user = User(name = "changiz")
+        val user = User(1L,"frez", "faraz", "frez@gmail.com", "####")
         userRepository.save(user)
         val randomUUID = UUID.randomUUID()
         val book = Book(randomUUID, "tile", "isbn")
@@ -269,8 +280,8 @@ class BookControllerRestTest @Autowired constructor(
     @Test
     @DirtiesContext
     fun `return BAD_REQUEST status when want to borrow not available book`() {
-        val user = User(name = "changiz")
-        val userWithBook = User(name = "linda")
+        val user = User(1L,"frez", "faraz", "frez@gmail.com", "####")
+        val userWithBook = User(2L,"frez2", "faraz", "frez2@gmail.com", "####")
         userRepository.save(user)
         userRepository.save(userWithBook)
         val randomUUID = UUID.randomUUID()
