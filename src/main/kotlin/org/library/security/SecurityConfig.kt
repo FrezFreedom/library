@@ -24,10 +24,9 @@ class SecurityConfig {
                 authorize.requestMatchers(HttpMethod.GET,"/api/users/{id}").access(GetUserAuthorizationManager())
                 authorize.requestMatchers(HttpMethod.PUT,"/api/users/{id}").access(GetUserAuthorizationManager())
                 // api/books
-                authorize.requestMatchers(HttpMethod.GET,"/api/books").authenticated()
+                authorize.requestMatchers(HttpMethod.GET,"/api/books", "/api/books/{id}").permitAll()
                 authorize.requestMatchers(HttpMethod.POST,"/api/books").hasRole("ADMIN")
                 authorize.requestMatchers(HttpMethod.DELETE,"/api/books").hasRole("ADMIN")
-                authorize.requestMatchers(HttpMethod.GET,"/api/books/{id}").authenticated()
                 authorize.requestMatchers(HttpMethod.POST,"/api/books/return", "/api/books/borrow").hasRole("ADMIN")
             }
             .httpBasic { }

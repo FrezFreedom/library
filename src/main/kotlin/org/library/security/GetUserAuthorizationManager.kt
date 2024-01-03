@@ -19,17 +19,17 @@ class GetUserAuthorizationManager() : AuthorizationManager<RequestAuthorizationC
         if (auth is AnonymousAuthenticationToken)
             return AuthorizationDecision(false)
 
+        if (auth.authorities.any {
+                it.authority == "ROLE_ADMIN"
+            }) {
+            return AuthorizationDecision(true)
+        }
+
         val idOfUserThatRequested = (auth.principal as UserDetailsWithId).getId()
         val requestedId = `object`?.variables?.get("id")?.toLong()
 
         if (idOfUserThatRequested == requestedId)
             return AuthorizationDecision(true)
-
-        if (auth.authorities.any { authority ->
-                authority.authority == "ROLE_ADMIN"
-            }) {
-            return AuthorizationDecision(true)
-        }
 
         return AuthorizationDecision(false)
     }
